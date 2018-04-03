@@ -2588,8 +2588,6 @@ static int mdp_bus_scale_register(void)
 static int bus_index = 1;
 int mdp_bus_scale_update_request(u64 ab, u64 ib)
 {
-	lcd_type type = asustek_get_lcd_type();
-
 	if (mdp_bus_scale_handle < 1) {
 		pr_err("%s invalid bus handle\n", __func__);
 		return -EINVAL;

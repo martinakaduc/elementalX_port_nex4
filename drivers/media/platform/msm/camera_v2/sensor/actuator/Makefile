@@ -1,4 +1,4 @@
-ccflags-y += -Idrivers/media/platform/msm/camera_v2
-ccflags-y += -Idrivers/media/platform/msm/camera_v2/sensor/io
-ccflags-y += -Idrivers/media/platform/msm/camera_v2/sensor/cci
-obj-$(CONFIG_MSMB_CAMERA) += msm_actuator.o
+GCC_VERSION      := $(shell $(CONFIG_SHELL) $(PWD)/scripts/gcc-version.sh $(CROSS_COMPILE)gcc)
+EXTRA_CFLAGS += -Idrivers/media/video/msm
+EXTRA_CFLAGS += -Idrivers/media/video/msm/io
+obj-$(CONFIG_MSM_ACTUATOR) += msm_actuator.o

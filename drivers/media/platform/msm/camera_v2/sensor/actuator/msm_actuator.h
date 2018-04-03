@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,14 +13,29 @@
 #define MSM_ACTUATOR_H
 
 #include <linux/i2c.h>
-#include <linux/gpio.h>
-#include <mach/camera2.h>
+#include <mach/camera.h>
+#include <mach/gpio.h>
 #include <media/v4l2-subdev.h>
-#include <media/msmb_camera.h>
+#include <media/msm_camera.h>
 #include "msm_camera_i2c.h"
 
-#define DEFINE_MSM_MUTEX(mutexname) \
-	static struct mutex mutexname = __MUTEX_INITIALIZER(mutexname)
+#ifdef LERROR
+#undef LERROR
+#endif
+
+#ifdef LINFO
+#undef LINFO
+#endif
+
+#define LERROR(fmt, args...) pr_err(fmt, ##args)
+
+#define CONFIG_MSM_CAMERA_ACT_DBG 0
+
+#if CONFIG_MSM_CAMERA_ACT_DBG
+#define LINFO(fmt, args...) printk(fmt, ##args)
+#else
+#define LINFO(fmt, args...) CDBG(fmt, ##args)
+#endif
 
 struct msm_actuator_ctrl_t;
 
@@ -36,9 +51,9 @@ struct msm_actuator_func_tbl {
 			struct msm_actuator_move_params_t *);
 	int32_t (*actuator_move_focus) (struct msm_actuator_ctrl_t *,
 			struct msm_actuator_move_params_t *);
-	void (*actuator_parse_i2c_params)(struct msm_actuator_ctrl_t *,
+	int32_t (*actuator_parse_i2c_params)(struct msm_actuator_ctrl_t *,
 			int16_t, uint32_t, uint16_t);
-	void (*actuator_write_focus)(struct msm_actuator_ctrl_t *,
+	int32_t (*actuator_write_focus)(struct msm_actuator_ctrl_t *,
 			uint16_t,
 			struct damping_params_t *,
 			int8_t,
@@ -52,12 +67,7 @@ struct msm_actuator {
 
 struct msm_actuator_ctrl_t {
 	struct i2c_driver *i2c_driver;
-	struct platform_driver *pdriver;
-	struct platform_device *pdev;
 	struct msm_camera_i2c_client i2c_client;
-	enum msm_camera_device_type_t act_device_type;
-	struct msm_sd_subdev msm_sd;
-	enum af_camera_name cam_name;
 	struct mutex *actuator_mutex;
 	struct msm_actuator_func_tbl *func_tbl;
 	enum msm_actuator_data_type i2c_data_type;
@@ -79,7 +89,18 @@ struct msm_actuator_ctrl_t {
 	uint16_t initial_code;
 	struct msm_camera_i2c_reg_tbl *i2c_reg_tbl;
 	uint16_t i2c_tbl_index;
-	enum cci_i2c_master_t cci_master;
 };
+
+#ifdef CONFIG_MSM_ACTUATOR
+struct msm_actuator_ctrl_t *get_actrl(struct v4l2_subdev *sd);
+#else
+static inline struct msm_actuator_ctrl_t *get_actrl(struct v4l2_subdev *sd)
+{
+	return NULL;
+}
+#endif
+
+#define VIDIOC_MSM_ACTUATOR_CFG \
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 11, void __user *)
 
 #endif
